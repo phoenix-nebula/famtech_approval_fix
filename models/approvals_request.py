@@ -3,14 +3,12 @@ from odoo import models
 class ApprovalRequest(models.Model):
     _inherit = 'approval.request'
 
-    def message_post(self, *args, **kwargs):
-        # Clean attachment_ids from kwargs
-        if kwargs.get('attachment_ids'):
-            kwargs['attachment_ids'] = [
-                a for a in kwargs['attachment_ids']
-                if a is not None and a is not False
-            ]
-            if not kwargs['attachment_ids']:
-                kwargs.pop('attachment_ids')
-
-        return super().message_post(*args, **kwargs)
+    def write(self, vals):
+        if 'attachment_ids' in vals:
+            cleaned = []
+            for cmd in vals['attachment_ids']:
+                if isinstance(cmd, (list, tuple)) and len(cmd) == 3 and cmd[2] is None:
+                    continue
+                cleaned.append(cmd)
+            vals['attachment_ids'] = cleaned
+        return super().write(vals)
